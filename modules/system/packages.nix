@@ -9,6 +9,7 @@
     pciutils
     bubblewrap
     ripgrep
+    gh
     jq
     python3
   ];
