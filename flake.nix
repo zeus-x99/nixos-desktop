@@ -17,7 +17,6 @@
         modules = [
           { nixpkgs.config.allowUnfree = true; }
           sops-nix.nixosModules.sops
-          ./configuration.nix
           ./hardware-configuration.nix
           ./modules/default.nix
         ];
