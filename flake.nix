@@ -10,8 +10,31 @@
   outputs = { nixpkgs, sops-nix, ... }:
     let
       system = "x86_64-linux";
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
     in
     {
+      devShells.${system}.default = pkgs.mkShell {
+        packages = with pkgs; [
+          bacon
+          cargo
+          clippy
+          gcc
+          lldb
+          openssl
+          pkg-config
+          python3
+          rust-analyzer
+          rustc
+          rustfmt
+          uv
+        ];
+
+        RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
+      };
+
       nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [

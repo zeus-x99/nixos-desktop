@@ -55,6 +55,21 @@ let
 
   helixLanguages = tomlFormat.generate "zeus-helix-languages.toml" {
     language-server.nil.command = "${pkgs.nil}/bin/nil";
+    language-server.rust-analyzer = {
+      command = "${pkgs.rust-analyzer}/bin/rust-analyzer";
+      environment = {
+        PATH = lib.makeBinPath [
+          pkgs.cargo
+          pkgs.clippy
+          pkgs.gcc
+          pkgs.git
+          pkgs.pkg-config
+          pkgs.rustc
+          pkgs.rustfmt
+        ];
+        RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
+      };
+    };
     language = [
       {
         name = "nix";
@@ -65,9 +80,50 @@ let
       {
         name = "rust";
         auto-format = true;
+        language-servers = [ "rust-analyzer" ];
         formatter = {
           command = "${pkgs.rustfmt}/bin/rustfmt";
           args = [ "--emit=stdout" ];
+        };
+        # Pin Rust debugging to the system-provided LLDB DAP binary so the
+        # setup does not depend on Helix runtime defaults.
+        debugger = {
+          name = "lldb-dap";
+          transport = "stdio";
+          command = "${pkgs.lldb}/bin/lldb-dap";
+          templates = [
+            {
+              name = "binary";
+              request = "launch";
+              completion = [
+                {
+                  name = "binary";
+                  completion = "filename";
+                }
+              ];
+              args = { program = "{0}"; };
+            }
+            {
+              name = "binary (terminal)";
+              request = "launch";
+              completion = [
+                {
+                  name = "binary";
+                  completion = "filename";
+                }
+              ];
+              args = {
+                program = "{0}";
+                runInTerminal = true;
+              };
+            }
+            {
+              name = "attach";
+              request = "attach";
+              completion = [ "pid" ];
+              args = { pid = "{0}"; };
+            }
+          ];
         };
       }
     ];

@@ -11,6 +11,5 @@
     ripgrep
     gh
     jq
-    python3
   ];
 }

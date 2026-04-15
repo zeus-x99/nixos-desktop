@@ -17,6 +17,7 @@ let
       edit_mode: vi
     }
 
+    alias dev = nix develop /etc/nixos#default -c nu -l
     alias shx = sudo -E hx
 
     source ~/.cache/starship/init.nu
