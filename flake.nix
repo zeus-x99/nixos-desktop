@@ -26,9 +26,11 @@
           openssl
           pkg-config
           python3
+          ruff
           rust-analyzer
           rustc
           rustfmt
+          ty
           uv
         ];
 
