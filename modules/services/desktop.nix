@@ -43,6 +43,102 @@ let
         - schema: rime_ice
       menu/page_size: 9
   '';
+
+  clipboardBridge = pkgs.writeShellScript "zeus-clipboard-bridge.sh" ''
+    #!/usr/bin/env bash
+    set -eu
+
+    runtime_dir="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+    export XDG_RUNTIME_DIR="$runtime_dir"
+    export DISPLAY="''${DISPLAY:-:0}"
+
+    if [ -z "''${WAYLAND_DISPLAY:-}" ]; then
+      attempt=0
+      while [ "$attempt" -lt 10 ]; do
+        for socket in "$runtime_dir"/wayland-*; do
+          if [ -S "$socket" ]; then
+            export WAYLAND_DISPLAY="$(basename "$socket")"
+            break 2
+          fi
+        done
+        attempt=$((attempt + 1))
+        ${pkgs.coreutils}/bin/sleep 1
+      done
+    fi
+
+    if [ -z "''${WAYLAND_DISPLAY:-}" ]; then
+      echo "clipboard bridge: unable to find WAYLAND_DISPLAY in $runtime_dir" >&2
+      exit 1
+    fi
+
+    state_dir="$runtime_dir/clipboard-bridge"
+    mkdir -p "$state_dir"
+
+    wl_state="$state_dir/wayland"
+    x_state="$state_dir/x11"
+
+    sync_wl_to_x() {
+      local tmp
+      tmp="$(mktemp "$state_dir/wl.XXXXXX")"
+      cat >"$tmp"
+
+      if [ -f "$wl_state" ] && cmp -s "$tmp" "$wl_state"; then
+        rm -f "$tmp"
+        return 0
+      fi
+
+      cp "$tmp" "$wl_state"
+
+      if [ -f "$x_state" ] && cmp -s "$tmp" "$x_state"; then
+        rm -f "$tmp"
+        return 0
+      fi
+
+      ${pkgs.xsel}/bin/xsel -ib <"$tmp" || true
+      cp "$tmp" "$x_state"
+      rm -f "$tmp"
+    }
+
+    sync_x_to_wl() {
+      while true; do
+        ${pkgs.clipnotify}/bin/clipnotify
+
+        local tmp
+        tmp="$(mktemp "$state_dir/x.XXXXXX")"
+
+        if ! ${pkgs.xsel}/bin/xsel -ob >"$tmp" 2>/dev/null; then
+          rm -f "$tmp"
+          continue
+        fi
+
+        if [ -f "$x_state" ] && cmp -s "$tmp" "$x_state"; then
+          rm -f "$tmp"
+          continue
+        fi
+
+        cp "$tmp" "$x_state"
+
+        if [ -f "$wl_state" ] && cmp -s "$tmp" "$wl_state"; then
+          rm -f "$tmp"
+          continue
+        fi
+
+        ${pkgs.wl-clipboard}/bin/wl-copy <"$tmp" || true
+        cp "$tmp" "$wl_state"
+        rm -f "$tmp"
+      done
+    }
+
+    case "''${1:-}" in
+      wl-to-x)
+        sync_wl_to_x
+        ;;
+      *)
+        sync_x_to_wl &
+        exec ${pkgs.wl-clipboard}/bin/wl-paste --watch "$0" wl-to-x
+        ;;
+    esac
+  '';
 in
 {
   xdg.portal.enable = true;
@@ -59,6 +155,20 @@ in
   qt.platformTheme = "qt5ct";
 
   environment.etc."niri/config.kdl".source = ./niri-config.kdl;
+  environment.etc."niri/clipboard-bridge.sh".source = clipboardBridge;
+
+  systemd.user.services.niri-clipboard-bridge = {
+    description = "Bridge clipboard between Wayland and Xwayland";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+    path = with pkgs; [ coreutils diffutils ];
+    serviceConfig = {
+      ExecStart = "/etc/niri/clipboard-bridge.sh";
+      Restart = "always";
+      RestartSec = 1;
+    };
+  };
 
   environment.systemPackages = with pkgs; [
     papirus-icon-theme
@@ -79,6 +189,13 @@ in
 
   programs.niri.enable = true;
   programs.dms-shell.enable = true;
+
+  services.displayManager.autoLogin = {
+    enable = true;
+    user = userSettings.name;
+  };
+
+  services.displayManager.defaultSession = "niri";
 
   services.displayManager.dms-greeter = {
     enable = true;
@@ -144,5 +261,15 @@ in
     "rm -f ${lib.escapeShellArg "${userSettings.home}/.config/fcitx5/config"}"
     "rm -f ${lib.escapeShellArg "${userSettings.home}/.config/fcitx5/conf/pinyin.conf"}"
     "rm -rf ${lib.escapeShellArg "${userSettings.home}/.local/share/fcitx5/pinyin"}"
+  ];
+} // mkUserActivation {
+  name = "zeusDmsFiles";
+  dryMessage = "would install ${userSettings.name} dms files";
+  dirs = [ ".config/DankMaterialShell" ];
+  files = [
+    {
+      source = ./dms-settings.json;
+      target = ".config/DankMaterialShell/settings.json";
+    }
   ];
 }

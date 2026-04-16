@@ -1,13 +1,22 @@
 {
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    ha-system-ronitor = {
+      url = "github:zeus-x99/ha-system-ronitor";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
-  outputs = { nixpkgs, sops-nix, ... }:
+  outputs = {
+    nixpkgs,
+    ha-system-ronitor,
+    sops-nix,
+    ...
+  }:
     let
       system = "x86_64-linux";
       pkgs = import nixpkgs {
@@ -41,6 +50,7 @@
         inherit system;
         modules = [
           { nixpkgs.config.allowUnfree = true; }
+          ha-system-ronitor.nixosModules.default
           sops-nix.nixosModules.sops
           ./hardware-configuration.nix
           ./modules/default.nix

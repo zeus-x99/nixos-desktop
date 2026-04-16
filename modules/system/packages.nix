@@ -5,7 +5,9 @@
     firefox
     qq
     alacritty
+    fuzzel
     wl-clipboard
+    xsel
     pciutils
     bubblewrap
     ripgrep

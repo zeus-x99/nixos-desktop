@@ -24,6 +24,7 @@ in
 
     secrets = lib.mkIf hasSecretsFile {
       cliproxyapi_api_key = { };
+      ha-system-ronitor-mqtt-password = { };
     };
 
     templates = lib.mkIf hasSecretsFile {

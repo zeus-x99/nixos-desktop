@@ -77,12 +77,21 @@ input {
 // This external monitor supports 320 Hz and needs an explicit mode override.
 output "HDMI-A-1" {
     mode "2560x1440@319.999"
+    scale 1.25
+}
+
+output "DP-1" {
+    scale 2.0
 }
 
 gestures {
     hot-corners {
         off
     }
+}
+
+recent-windows {
+    off
 }
 
 // Settings that influence how windows are positioned and sized.
@@ -249,6 +258,7 @@ layout {
 spawn-at-startup "waybar"
 // Fcitx5 is already started by the user service; avoid double-starting it here.
 // spawn-at-startup "/run/current-system/sw/bin/fcitx5" "-d" "--replace"
+// Clipboard bridge is managed by a user systemd service.
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
 // spawn-sh-at-startup "qs -c ~/source/qs/MyAwesomeShell"
@@ -281,7 +291,7 @@ animations {
     // off
 
     // Slow down all animations by this factor. Values below 1 speed them up instead.
-    // slowdown 3.0
+    slowdown 0.5
 }
 
 // Window rules let you adjust behavior for individual windows.
@@ -343,6 +353,10 @@ binds {
     Mod+Return hotkey-overlay-title="Open a Terminal: alacritty" { spawn "alacritty"; }
     Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
+
+    // Global shortcuts are owned by Niri here; DMS only provides the Power Menu action.
+    // Do not configure this again in the DMS keybind editor while NIRI_CONFIG points to /etc/niri/config.kdl.
+    Mod+P hotkey-overlay-title="DMS Power Menu" { spawn "dms" "ipc" "call" "powermenu" "toggle"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
