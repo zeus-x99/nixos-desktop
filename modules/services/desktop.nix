@@ -222,6 +222,15 @@ in
     }
   ];
 
+  programs.firefox = {
+    enable = true;
+    languagePacks = [ "zh-CN" ];
+    preferences = {
+      "intl.accept_languages" = "zh-CN,zh,en-US,en";
+      "intl.locale.requested" = "zh-CN";
+    };
+  };
+
   programs.niri.enable = true;
   programs.dms-shell = {
     enable = true;

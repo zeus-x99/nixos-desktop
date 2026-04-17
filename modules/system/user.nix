@@ -9,7 +9,6 @@
       "input"
     ];
     packages = with pkgs; [
-      firefox
       qq
       wechat
       alacritty
