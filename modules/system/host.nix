@@ -3,7 +3,7 @@
 {
   system.stateVersion = "25.11";
 
-  networking.hostName = "nixos";
+  networking.hostName = "x";
 
   time.timeZone = "Asia/Shanghai";
 

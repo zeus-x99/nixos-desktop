@@ -12,6 +12,7 @@ let
     - 大型/多阶段任务使用计划步骤并逐步更新进度。
     - 引用文件请用 `path:line` 形式；避免过度格式化。
     - 在代码库中遵循项目的 AGENTS.md 与既有代码风格；只做最小必要改动。
+    - `/etc/nixos` 仓库内的配置文件通常由 `root` 拥有；需要修改这类文件时，默认直接使用 `sudo` 编辑或写入，不要先尝试无权限写入再回退。
     - Nix/NixOS 变更优先 `nix flake check` 与 `sudo nixos-rebuild dry-activate --flake .#...`；高风险再用 `test`，确认无误后再 `switch`。
   '';
 

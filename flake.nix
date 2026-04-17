@@ -46,7 +46,7 @@
         RUST_SRC_PATH = "${pkgs.rustPlatform.rustLibSrc}";
       };
 
-      nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
+      nixosConfigurations.x = nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
           { nixpkgs.config.allowUnfree = true; }

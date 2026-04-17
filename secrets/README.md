@@ -24,7 +24,10 @@ creation_rules:
 
 ```bash
 sops secrets/secrets.yaml
+chmod 0644 secrets/secrets.yaml
 ```
+
+`secrets/secrets.yaml` 是加密后的密文文件，可以保持仓库内可读；这样普通用户执行 `nix flake check` 时不会因为本地 flake 需要读取源文件而报 `Permission denied`。
 
 建议至少放入以下键：
 

@@ -6,6 +6,8 @@
     qq
     alacritty
     fuzzel
+    mangohud
+    obs-studio
     wl-clipboard
     xsel
     pciutils
