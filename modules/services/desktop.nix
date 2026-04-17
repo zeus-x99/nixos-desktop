@@ -228,6 +228,13 @@ in
     preferences = {
       "intl.accept_languages" = "zh-CN,zh,en-US,en";
       "intl.locale.requested" = "zh-CN";
+      "privacy.clearOnShutdown_v2.cookiesAndStorage" = false;
+      "privacy.clearOnShutdown_v2.formdata" = false;
+      "privacy.sanitize.pending" = "[]";
+      "privacy.sanitize.sanitizeOnShutdown" = false;
+      "services.sync.prefs.sync.privacy.clearOnShutdown_v2.cookiesAndStorage" = false;
+      "services.sync.prefs.sync.privacy.clearOnShutdown_v2.formdata" = false;
+      "services.sync.prefs.sync.privacy.sanitize.sanitizeOnShutdown" = false;
     };
   };
 
