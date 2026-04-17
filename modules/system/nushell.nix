@@ -9,8 +9,6 @@ let
     inherit lib userSettings;
   };
 
-  loginFile = "${userSettings.home}/.config/nushell/login.nu";
-
   nushellConfig = pkgs.writeText "zeus-config.nu" ''
     $env.config = {
       show_banner: false
@@ -40,12 +38,10 @@ in
 {
   users.users.${userSettings.name} = {
     shell = pkgs.nushell;
-    packages = with pkgs; [ nushell ];
   };
 } // mkUserActivation {
   name = "zeusNushellFiles";
   dryMessage = "would install ${userSettings.name} nushell files";
-  dirs = [ ".config/nushell" ];
   files = [
     {
       source = nushellConfig;
@@ -56,9 +52,10 @@ in
       target = ".config/nushell/env.nu";
     }
   ];
-  commands = [
-    ": > ${lib.escapeShellArg loginFile}"
-    "chown ${lib.escapeShellArg "${userSettings.name}:${userSettings.group}"} ${lib.escapeShellArg loginFile}"
-    "chmod 0644 ${lib.escapeShellArg loginFile}"
+  emptyFiles = [
+    {
+      target = ".config/nushell/login.nu";
+      createOnly = true;
+    }
   ];
 }

@@ -5,7 +5,6 @@ let
   };
 
   steamGamescopeConfigPath = "/etc/mangohud/steam-gamescope.conf";
-  legacyUserConfig = "${userSettings.home}/.config/MangoHud/MangoHud.conf";
 
   mangoHudConfig = pkgs.writeText "zeus-steam-gamescope-mangohud.conf" ''
     position=top-right
@@ -56,7 +55,5 @@ in
 } // mkUserActivation {
   name = "zeusMangoHudSteamCleanup";
   dryMessage = "would remove ${userSettings.name} desktop MangoHud config";
-  commands = [
-    "rm -f ${lib.escapeShellArg legacyUserConfig}"
-  ];
+  removePaths = [ ".config/MangoHud/MangoHud.conf" ];
 }

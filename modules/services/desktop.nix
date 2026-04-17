@@ -1,4 +1,4 @@
-{ lib, pkgs, userSettings, ... }:
+{ lib, pkgs, quickshell, userSettings, ... }:
 let
   mkUserActivation = import ../../lib/mk-user-activation.nix {
     inherit lib userSettings;
@@ -17,24 +17,6 @@ let
     MenuFont="LXGW WenKai Screen 14"
     TrayFont="LXGW WenKai Screen 11"
     UseInputMethodLangaugeToDisplayText=True
-  '';
-
-  fcitx5Profile = pkgs.writeText "zeus-fcitx5-profile" ''
-    [Groups/0]
-    Name=Default
-    Default Layout=us
-    DefaultIM=rime
-
-    [Groups/0/Items/0]
-    Name=keyboard-us
-    Layout=
-
-    [Groups/0/Items/1]
-    Name=rime
-    Layout=
-
-    [GroupOrder]
-    0=Default
   '';
 
   rimeDefaultCustom = pkgs.writeText "zeus-rime-default.custom.yaml" ''
@@ -139,6 +121,50 @@ let
         ;;
     esac
   '';
+
+  dmsSettingsPath = "${userSettings.home}/.config/DankMaterialShell/settings.json";
+  dmsNiriDir = "${userSettings.home}/.config/niri/dms";
+  dmsNiriFiles = [
+    "colors"
+    "layout"
+    "alttab"
+    "binds"
+    "wpblur"
+  ];
+
+  niriConfig = pkgs.writeText "zeus-niri-config.kdl" ''
+    ${builtins.readFile ./niri-config.kdl}
+
+    // DMS writes compositor fragments under the user's XDG config dir.
+    // Because this system config lives in /etc/niri, use absolute include paths.
+    layer-rule {
+        match namespace="^quickshell$"
+        place-within-backdrop true
+    }
+
+    include "${dmsNiriDir}/colors.kdl"
+    include "${dmsNiriDir}/layout.kdl"
+    include "${dmsNiriDir}/alttab.kdl"
+    include "${dmsNiriDir}/binds.kdl"
+    include "${dmsNiriDir}/wpblur.kdl"
+  '';
+
+  dmsGreeterNiriConfig = ''
+    input {
+        keyboard {
+            xkb {}
+        }
+    }
+
+    output "HDMI-A-1" {
+        mode "2560x1440@319.999"
+        scale 1.25
+    }
+
+    output "DP-1" {
+        scale 2.0
+    }
+  '';
 in
 {
   xdg.portal.enable = true;
@@ -154,8 +180,17 @@ in
   qt.enable = true;
   qt.platformTheme = "qt5ct";
 
-  environment.etc."niri/config.kdl".source = ./niri-config.kdl;
+  environment.etc."niri/config.kdl".source = niriConfig;
   environment.etc."niri/clipboard-bridge.sh".source = clipboardBridge;
+  environment.etc."xdg/qt5ct/qt5ct.conf".text = ''
+    [Appearance]
+    icon_theme=Papirus
+  '';
+  environment.etc."xdg/qt6ct/qt6ct.conf".text = ''
+    [Appearance]
+    icon_theme=Papirus
+  '';
+  environment.etc."xdg/fcitx5/conf/classicui.conf".source = fcitx5ClassicUi;
 
   systemd.user.services.niri-clipboard-bridge = {
     description = "Bridge clipboard between Wayland and Xwayland";
@@ -188,7 +223,10 @@ in
   ];
 
   programs.niri.enable = true;
-  programs.dms-shell.enable = true;
+  programs.dms-shell = {
+    enable = true;
+    quickshell.package = quickshell.packages.${pkgs.stdenv.hostPlatform.system}.quickshell;
+  };
 
   services.displayManager.autoLogin = {
     enable = true;
@@ -200,6 +238,7 @@ in
   services.displayManager.dms-greeter = {
     enable = true;
     compositor.name = "niri";
+    compositor.customConfig = dmsGreeterNiriConfig;
     configHome = userSettings.home;
   };
 
@@ -238,38 +277,31 @@ in
 } // mkUserActivation {
   name = "zeusFcitx5Files";
   dryMessage = "would install ${userSettings.name} fcitx5 files";
-  dirs = [
-    ".config/fcitx5/conf"
-    ".local/share/fcitx5/rime"
-  ];
   files = [
-    {
-      source = fcitx5Profile;
-      target = ".config/fcitx5/profile";
-    }
-    {
-      source = fcitx5ClassicUi;
-      target = ".config/fcitx5/conf/classicui.conf";
-    }
     {
       source = rimeDefaultCustom;
       target = ".local/share/fcitx5/rime/default.custom.yaml";
     }
   ];
-  commands = [
-    "rm -f ${lib.escapeShellArg "${userSettings.home}/.config/niri/config.kdl"}"
-    "rm -f ${lib.escapeShellArg "${userSettings.home}/.config/fcitx5/config"}"
-    "rm -f ${lib.escapeShellArg "${userSettings.home}/.config/fcitx5/conf/pinyin.conf"}"
-    "rm -rf ${lib.escapeShellArg "${userSettings.home}/.local/share/fcitx5/pinyin"}"
+  removePaths = [
+    ".config/niri/config.kdl"
+    ".config/fcitx5/config"
+    ".config/fcitx5/profile"
+    ".config/fcitx5/conf/classicui.conf"
+    ".config/fcitx5/conf/pinyin.conf"
+    ".local/share/fcitx5/pinyin"
   ];
 } // mkUserActivation {
   name = "zeusDmsFiles";
-  dryMessage = "would install ${userSettings.name} dms files";
-  dirs = [ ".config/DankMaterialShell" ];
-  files = [
+  dryMessage = "would initialize ${userSettings.name} dms files";
+  seedFiles = [
     {
       source = ./dms-settings.json;
       target = ".config/DankMaterialShell/settings.json";
     }
   ];
+  emptyFiles = map (name: {
+    target = ".config/niri/dms/${name}.kdl";
+    createOnly = true;
+  }) dmsNiriFiles;
 }

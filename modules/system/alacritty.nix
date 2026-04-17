@@ -4,8 +4,6 @@ let
     inherit lib userSettings;
   };
 
-  obsoleteTheme = "${userSettings.home}/.config/alacritty/dank-theme.toml";
-
   alacrittyConfig = pkgs.writeText "zeus-alacritty.toml" ''
     [general]
     live_config_reload = true
@@ -137,12 +135,11 @@ in
 mkUserActivation {
   name = "zeusAlacrittyFiles";
   dryMessage = "would install ${userSettings.name} alacritty files";
-  dirs = [ ".config/alacritty" ];
   files = [
     {
       source = alacrittyConfig;
       target = ".config/alacritty/alacritty.toml";
     }
   ];
-  commands = [ "rm -f ${lib.escapeShellArg obsoleteTheme}" ];
+  removePaths = [ ".config/alacritty/dank-theme.toml" ];
 }

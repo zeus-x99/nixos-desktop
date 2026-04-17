@@ -86,12 +86,9 @@ let
     ];
   };
 in
-{
-  users.users.${userSettings.name}.packages = with pkgs; [ helix ];
-} // mkUserActivation {
+mkUserActivation {
   name = "zeusHelixFiles";
   dryMessage = "would install ${userSettings.name} helix files";
-  dirs = [ ".config/helix" ];
   files = [
     {
       source = helixConfig;

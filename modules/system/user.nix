@@ -1,4 +1,4 @@
-{ lib, userSettings, ... }:
+{ lib, pkgs, userSettings, ... }:
 
 {
   users.users.${userSettings.name} = {
@@ -6,6 +6,25 @@
     extraGroups = [
       "wheel"
       "networkmanager"
+      "input"
+    ];
+    packages = with pkgs; [
+      firefox
+      qq
+      wechat
+      alacritty
+      fuzzel
+      obs-studio
+      codex
+      helix
+      nushell
+      starship
+      wl-clipboard
+      xsel
+      pciutils
+      ripgrep
+      gh
+      jq
     ];
   };
 

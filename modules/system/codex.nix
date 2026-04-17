@@ -88,12 +88,9 @@ in
   systemd.tmpfiles.rules = [
     "L+ /usr/bin/bwrap - - - - /run/current-system/sw/bin/bwrap"
   ];
-
-  users.users.${userSettings.name}.packages = with pkgs; [ codex ];
 } // mkUserActivation {
   name = "zeusCodexFiles";
   dryMessage = "would install ${userSettings.name} codex files";
-  dirs = [ ".codex/prompts" ];
   files = [
     {
       source = codexConfig;
