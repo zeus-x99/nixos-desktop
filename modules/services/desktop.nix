@@ -24,6 +24,8 @@ let
       schema_list:
         - schema: rime_ice
       menu/page_size: 9
+      "key_binder/bindings/+":
+        - { when: always, toggle: ascii_mode, accept: Control+space }
   '';
 
   clipboardBridge = pkgs.writeShellScript "zeus-clipboard-bridge.sh" ''
@@ -404,9 +406,9 @@ in
       ];
       settings = {
         globalOptions = {
-          "Hotkey"."EnumerateWithTriggerKeys" = "True";
-          "Hotkey"."EnumerateSkipFirst" = "True";
-          "Hotkey/TriggerKeys"."0" = "Control+space";
+          "Hotkey"."EnumerateWithTriggerKeys" = "False";
+          "Hotkey"."EnumerateSkipFirst" = "False";
+          "Hotkey/TriggerKeys" = { };
           "Hotkey/AltTriggerKeys" = { };
           "Hotkey/EnumerateGroupForwardKeys" = { };
           "Hotkey/EnumerateGroupBackwardKeys" = { };
@@ -417,15 +419,15 @@ in
             "Default Layout" = "us";
             DefaultIM = "rime";
           };
-          "Groups/0/Items/0" = { Name = "keyboard-us"; Layout = ""; };
-          "Groups/0/Items/1" = { Name = "rime"; Layout = ""; };
+          "Groups/0/Items/0" = { Name = "rime"; Layout = ""; };
           GroupOrder = { "0" = "Default"; };
         };
       };
     };
   };
 
-} // mkUserActivation {
+} // lib.recursiveUpdate
+  (mkUserActivation {
   name = "zeusFcitx5Files";
   dryMessage = "would install ${userSettings.name} fcitx5 files";
   files = [
@@ -442,7 +444,8 @@ in
     ".config/fcitx5/conf/pinyin.conf"
     ".local/share/fcitx5/pinyin"
   ];
-} // mkUserActivation {
+  })
+  (mkUserActivation {
   name = "zeusDmsFiles";
   dryMessage = "would initialize ${userSettings.name} dms files";
   seedFiles = [
@@ -455,4 +458,4 @@ in
     target = ".config/niri/dms/${name}.kdl";
     createOnly = true;
   }) dmsNiriFiles;
-}
+  })
