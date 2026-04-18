@@ -391,6 +391,11 @@ binds {
     Mod+O repeat=false { toggle-overview; }
 
     Mod+Q repeat=false { close-window; }
+    Mod+Alt+B { spawn-sh "id=$(niri msg --json windows | jq -r 'map(select((.app_id | ascii_downcase)==\"firefox\")) | if length > 0 then max_by([.focus_timestamp.secs, .focus_timestamp.nanos]).id else empty end'); if [ -n \"$id\" ]; then exec niri msg action focus-window --id \"$id\"; elif pgrep -f '(^|/)(firefox)( |$)' >/dev/null; then exit 0; else exec firefox; fi"; }
+    Mod+Alt+E { spawn "foot" "yazi" "/home/zeus"; }
+    Mod+Alt+Q { spawn-sh "id=$(niri msg --json windows | jq -r 'map(select((.app_id | ascii_downcase)==\"qq\")) | if length > 0 then max_by([.focus_timestamp.secs, .focus_timestamp.nanos]).id else empty end'); if [ -n \"$id\" ]; then exec niri msg action focus-window --id \"$id\"; fi; tray=''; for name in $(busctl --user list 2>/dev/null | awk '$3 == \"qq\" { print $1 }'); do if busctl --user tree \"$name\" 2>/dev/null | grep -q '/StatusNotifierItem'; then tray=\"$name\"; break; fi; done; if [ -n \"$tray\" ]; then busctl --user call \"$tray\" /StatusNotifierItem org.kde.StatusNotifierItem Activate ii 0 0 >/dev/null 2>&1 && exit 0; fi; if pgrep -f '/opt/QQ/qq( |$)' >/dev/null; then exit 0; else exec qq; fi"; }
+    Mod+Alt+T { spawn-sh "id=$(niri msg --json windows | jq -r 'map(select((.app_id | ascii_downcase)==\"alacritty\")) | if length > 0 then max_by([.focus_timestamp.secs, .focus_timestamp.nanos]).id else empty end'); if [ -n \"$id\" ]; then exec niri msg action focus-window --id \"$id\"; elif pgrep -f '(^|/)(alacritty)( |$)' >/dev/null; then exit 0; else exec alacritty; fi"; }
+    Mod+Alt+W { spawn-sh "id=$(niri msg --json windows | jq -r 'map(select((.app_id | ascii_downcase)==\"wechat\")) | if length > 0 then max_by([.focus_timestamp.secs, .focus_timestamp.nanos]).id else empty end'); if [ -n \"$id\" ]; then exec niri msg action focus-window --id \"$id\"; fi; tray=$(busctl --user list 2>/dev/null | awk '$1 ~ /^org\\.kde\\.StatusNotifierItem-/ && $3 == \"wechat\" { print $1; exit }'); if [ -n \"$tray\" ]; then busctl --user call \"$tray\" /StatusNotifierItem org.kde.StatusNotifierItem Activate ii 0 0 >/dev/null 2>&1 && exit 0; fi; exec wechat"; }
 
     Mod+Left  { focus-column-left; }
     Mod+Down  { focus-window-down; }
