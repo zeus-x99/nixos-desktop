@@ -7,6 +7,7 @@
       "wheel"
       "networkmanager"
       "input"
+      "gamemode"
     ];
     packages = with pkgs; [
       qq

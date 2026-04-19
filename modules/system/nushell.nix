@@ -36,6 +36,8 @@ let
   '';
 in
 {
+  environment.shells = [ pkgs.nushell ];
+
   users.users.${userSettings.name} = {
     shell = pkgs.nushell;
   };

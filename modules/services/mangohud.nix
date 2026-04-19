@@ -6,15 +6,19 @@ let
 
   steamGamescopeConfigPath = "/etc/mangohud/steam-gamescope.conf";
 
-  mangoHudConfig = pkgs.writeText "zeus-steam-gamescope-mangohud.conf" ''
-    position=top-right
-    offset_x=24
-    offset_y=24
-    round_corners=8
-    background_alpha=0.35
-    alpha=0.95
-    font_size=22
+  steamGamescopeConfig = pkgs.writeText "zeus-steam-gamescope-mangohud.conf" ''
+    position=top-center
+    offset_x=0
+    offset_y=8
+    horizontal
+    horizontal_stretch
+    hud_no_margin
+    round_corners=0
+    background_alpha=0
+    alpha=1
+    font_size=20
     no_small_font
+    table_columns=6
     toggle_hud=Shift_R+F12
 
     fps
@@ -30,7 +34,6 @@ let
 
     cpu_stats
     cpu_temp
-    cpu_power
     ram
 
     gamemode
@@ -45,15 +48,16 @@ let
   '';
 in
 {
-  environment.etc."mangohud/steam-gamescope.conf".source = mangoHudConfig;
+  environment.etc."mangohud/steam-gamescope.conf".source = steamGamescopeConfig;
 
   programs.steam.gamescopeSession = {
-    # Use gamescope's mangoapp integration for the dedicated Steam session.
-    args = lib.mkAfter [ "--mangoapp" ];
     env.MANGOHUD_CONFIGFILE = steamGamescopeConfigPath;
   };
 } // mkUserActivation {
   name = "zeusMangoHudSteamCleanup";
   dryMessage = "would remove ${userSettings.name} desktop MangoHud config";
-  removePaths = [ ".config/MangoHud/MangoHud.conf" ];
+  removePaths = [
+    ".config/MangoHud/MangoHud.conf"
+    ".local/state/MangoHud"
+  ];
 }

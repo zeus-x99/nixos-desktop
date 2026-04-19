@@ -5,5 +5,7 @@
     mangohud
     bubblewrap
     ffmpeg
+    fastfetch
+    playerctl
   ];
 }
