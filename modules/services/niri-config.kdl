@@ -256,8 +256,8 @@ layout {
 
 // This line starts waybar, a commonly used bar for Wayland compositors.
 spawn-at-startup "waybar"
-// Fcitx5 is already started by the user service; avoid double-starting it here.
-// spawn-at-startup "/run/current-system/sw/bin/fcitx5" "-d" "--replace"
+// Start Fcitx5 from the compositor so it inherits the live Wayland session.
+spawn-at-startup "/run/current-system/sw/bin/fcitx5" "-d" "-r"
 // Clipboard bridge is managed by a user systemd service.
 
 // To run a shell command (with variables, pipes, etc.), use spawn-sh-at-startup:
@@ -351,7 +351,7 @@ binds {
 
     // Suggested binds for running programs: terminal, app launcher, screen locker.
     Mod+Return hotkey-overlay-title="Open a Terminal: alacritty" { spawn "alacritty"; }
-    Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
+    Mod+D hotkey-overlay-title="Run an Application: Noctalia Launcher" { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.

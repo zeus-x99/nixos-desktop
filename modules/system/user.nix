@@ -13,7 +13,6 @@
       qq
       wechat
       alacritty
-      fuzzel
       obs-studio
       codex
       helix

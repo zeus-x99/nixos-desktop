@@ -179,8 +179,6 @@ in
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
     NIRI_CONFIG = "/etc/niri/config.kdl";
-    GTK_IM_MODULE = "fcitx";
-    QT_IM_MODULE = "fcitx";
     QT_QPA_PLATFORMTHEME_QT6 = "qt6ct";
     EDITOR = "${pkgs.helix}/bin/hx";
     VISUAL = "${pkgs.helix}/bin/hx";
@@ -215,6 +213,14 @@ in
       ExecStart = "/etc/niri/clipboard-bridge.sh";
       Restart = "always";
       RestartSec = 1;
+    };
+  };
+
+  systemd.user.services."app-org.fcitx.Fcitx5@autostart" = {
+    description = "Disable Fcitx 5 XDG autostart";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.coreutils}/bin/true";
     };
   };
 
@@ -395,7 +401,9 @@ in
         globalOptions = {
           "Hotkey"."EnumerateWithTriggerKeys" = "False";
           "Hotkey"."EnumerateSkipFirst" = "False";
-          "Hotkey/TriggerKeys" = { };
+          "Hotkey/TriggerKeys" = {
+            "0" = "Control+space";
+          };
           "Hotkey/AltTriggerKeys" = { };
           "Hotkey/EnumerateGroupForwardKeys" = { };
           "Hotkey/EnumerateGroupBackwardKeys" = { };
