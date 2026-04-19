@@ -354,10 +354,6 @@ binds {
     Mod+D hotkey-overlay-title="Run an Application: fuzzel" { spawn "fuzzel"; }
     Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
 
-    // Global shortcuts are owned by Niri here; DMS only provides the Power Menu action.
-    // Do not configure this again in the DMS keybind editor while NIRI_CONFIG points to /etc/niri/config.kdl.
-    Mod+P hotkey-overlay-title="DMS Power Menu" { spawn "dms" "ipc" "call" "powermenu" "toggle"; }
-
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
     // Note: the entire command goes as a single argument. It's passed verbatim to `sh -c`.
     // For example, this is a standard bind to toggle the screen reader (orca).

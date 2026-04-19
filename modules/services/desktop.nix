@@ -1,4 +1,4 @@
-{ lib, pkgs, quickshell, userSettings, ... }:
+{ lib, pkgs, userSettings, ... }:
 let
   mkUserActivation = import ../../lib/mk-user-activation.nix {
     inherit lib userSettings;
@@ -124,49 +124,50 @@ let
     esac
   '';
 
-  dmsSettingsPath = "${userSettings.home}/.config/DankMaterialShell/settings.json";
-  dmsNiriDir = "${userSettings.home}/.config/niri/dms";
-  dmsNiriFiles = [
-    "colors"
-    "layout"
-    "alttab"
-    "binds"
-    "wpblur"
-  ];
-
-  niriConfig = pkgs.writeText "zeus-niri-config.kdl" ''
-    ${builtins.readFile ./niri-config.kdl}
-
-    // DMS writes compositor fragments under the user's XDG config dir.
-    // Because this system config lives in /etc/niri, use absolute include paths.
-    layer-rule {
-        match namespace="^quickshell$"
-        place-within-backdrop true
-    }
-
-    include "${dmsNiriDir}/colors.kdl"
-    include "${dmsNiriDir}/layout.kdl"
-    include "${dmsNiriDir}/alttab.kdl"
-    include "${dmsNiriDir}/binds.kdl"
-    include "${dmsNiriDir}/wpblur.kdl"
-  '';
-
-  dmsGreeterNiriConfig = ''
-    input {
-        keyboard {
-            xkb {}
-        }
-    }
-
-    output "HDMI-A-1" {
-        mode "2560x1440@319.999"
-        scale 1.25
-    }
-
-    output "DP-1" {
-        scale 2.0
-    }
-  '';
+  niriConfig = ./niri-config.kdl;
+  wallpaperImage = ../../assets/wallpapers/sunlight-beams-wallpaper-3840x2160-magical-woods-forest-magic-29641.jpg;
+  wallpaperPath = toString wallpaperImage;
+  noctaliaSettingsSeed = pkgs.writeText "zeus-noctalia-settings.json" (builtins.toJSON {
+    general = {
+      enableBlurBehind = true;
+      showChangelogOnStartup = false;
+    };
+    ui = {
+      panelBackgroundOpacity = 0.9;
+      translucentWidgets = true;
+    };
+    bar = {
+      barType = "floating";
+      position = "top";
+      backgroundOpacity = 0.88;
+      useSeparateOpacity = false;
+      showCapsule = true;
+      capsuleOpacity = 0.82;
+      marginVertical = 6;
+      marginHorizontal = 6;
+      frameThickness = 8;
+      frameRadius = 14;
+      widgetSpacing = 6;
+      contentPadding = 2;
+    };
+    wallpaper = {
+      enabled = true;
+      directory = builtins.dirOf wallpaperPath;
+      viewMode = "single";
+      setWallpaperOnAllMonitors = true;
+      linkLightAndDarkWallpapers = true;
+      fillMode = "crop";
+      useSolidColor = false;
+      overviewEnabled = true;
+      overviewBlur = 0.4;
+      overviewTint = 0.45;
+    };
+  });
+  noctaliaWallpaperCacheSeed = pkgs.writeText "zeus-noctalia-wallpapers.json" (builtins.toJSON {
+    wallpapers = { };
+    defaultWallpaper = wallpaperPath;
+    usedRandomWallpapers = { };
+  });
 in
 {
   services.udisks2.enable = true;
@@ -375,24 +376,10 @@ in
   };
 
   programs.niri.enable = true;
-  programs.dms-shell = {
-    enable = true;
-    quickshell.package = quickshell.packages.${pkgs.stdenv.hostPlatform.system}.quickshell;
-  };
-
-  services.displayManager.autoLogin = {
-    enable = true;
-    user = userSettings.name;
-  };
+  services.noctalia-shell.enable = true;
+  services.displayManager.ly.enable = true;
 
   services.displayManager.defaultSession = "niri";
-
-  services.displayManager.dms-greeter = {
-    enable = true;
-    compositor.name = "niri";
-    compositor.customConfig = dmsGreeterNiriConfig;
-    configHome = userSettings.home;
-  };
 
   i18n.inputMethod = {
     enable = true;
@@ -446,16 +433,22 @@ in
   ];
   })
   (mkUserActivation {
-  name = "zeusDmsFiles";
-  dryMessage = "would initialize ${userSettings.name} dms files";
-  seedFiles = [
-    {
-      source = ./dms-settings.json;
-      target = ".config/DankMaterialShell/settings.json";
-    }
-  ];
-  emptyFiles = map (name: {
-    target = ".config/niri/dms/${name}.kdl";
-    createOnly = true;
-  }) dmsNiriFiles;
-  })
+    name = "zeusNoctaliaFiles";
+    dryMessage = "would initialize ${userSettings.name} noctalia files";
+    removePaths = [
+      ".cache/DankMaterialShell"
+      ".config/DankMaterialShell"
+      ".config/niri/dms"
+      ".local/state/DankMaterialShell"
+    ];
+    seedFiles = [
+      {
+        source = noctaliaSettingsSeed;
+        target = ".config/noctalia/settings.json";
+      }
+      {
+        source = noctaliaWallpaperCacheSeed;
+        target = ".cache/noctalia/wallpapers.json";
+      }
+    ];
+    })

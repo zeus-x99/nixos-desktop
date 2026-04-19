@@ -5,8 +5,8 @@
       url = "github:zeus-x99/ha-system-ronitor";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    quickshell = {
-      url = "git+https://git.outfoxxed.me/quickshell/quickshell";
+    noctalia-shell = {
+      url = "github:noctalia-dev/noctalia-shell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     sops-nix = {
@@ -18,7 +18,7 @@
   outputs = {
     nixpkgs,
     ha-system-ronitor,
-    quickshell,
+    noctalia-shell,
     sops-nix,
     ...
   }:
@@ -56,10 +56,10 @@
 
       nixosConfigurations.x = nixpkgs.lib.nixosSystem {
         inherit system;
-        specialArgs = { inherit quickshell; };
         modules = [
           { nixpkgs.config = nixpkgsConfig; }
           ha-system-ronitor.nixosModules.default
+          noctalia-shell.nixosModules.default
           sops-nix.nixosModules.sops
           ./hardware-configuration.nix
           ./modules/default.nix
