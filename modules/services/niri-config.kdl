@@ -254,8 +254,8 @@ layout {
 // which may be more convenient to use.
 // See the binds section below for more spawn examples.
 
-// This line starts waybar, a commonly used bar for Wayland compositors.
-spawn-at-startup "waybar"
+// Start Noctalia from Niri so it inherits the live Wayland session.
+spawn-at-startup "noctalia-shell"
 // Start Fcitx5 from the compositor so it inherits the live Wayland session.
 spawn-at-startup "/run/current-system/sw/bin/fcitx5" "-d" "-r"
 // Clipboard bridge is managed by a user systemd service.

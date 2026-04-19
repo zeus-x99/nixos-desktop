@@ -1,4 +1,4 @@
-{ lib, pkgs, userSettings, ... }:
+{ config, lib, pkgs, userSettings, ... }:
 let
   mkUserActivation = import ../../lib/mk-user-activation.nix {
     inherit lib userSettings;
@@ -149,6 +149,51 @@ let
       frameRadius = 14;
       widgetSpacing = 6;
       contentPadding = 2;
+      widgets = {
+        left = [
+          { id = "Clock"; }
+          { id = "SystemMonitor"; }
+          { id = "ActiveWindow"; }
+          { id = "MediaMini"; }
+        ];
+        center = [
+          { id = "Workspace"; }
+        ];
+        right = [
+          { id = "Tray"; }
+          { id = "NotificationHistory"; }
+          { id = "Volume"; }
+          { id = "ControlCenter"; }
+        ];
+      };
+    };
+    controlCenter = {
+      cards = [
+        {
+          enabled = true;
+          id = "profile-card";
+        }
+        {
+          enabled = true;
+          id = "shortcuts-card";
+        }
+        {
+          enabled = true;
+          id = "audio-card";
+        }
+        {
+          enabled = false;
+          id = "brightness-card";
+        }
+        {
+          enabled = true;
+          id = "weather-card";
+        }
+        {
+          enabled = true;
+          id = "media-sysmon-card";
+        }
+      ];
     };
     wallpaper = {
       enabled = true;
@@ -170,6 +215,8 @@ let
   });
 in
 {
+  services.upower.enable = true;
+  services.power-profiles-daemon.enable = true;
   services.udisks2.enable = true;
 
   xdg.portal.enable = true;
@@ -241,6 +288,8 @@ in
     mpv
     papirus-icon-theme
     xwayland-satellite
+  ] ++ [
+    config.services.noctalia-shell.package
   ];
 
   # Provide a real icon theme instead of relying on the bare hicolor fallback
@@ -382,7 +431,6 @@ in
   };
 
   programs.niri.enable = true;
-  services.noctalia-shell.enable = true;
   services.displayManager.ly.enable = true;
 
   services.displayManager.defaultSession = "niri";
@@ -442,18 +490,20 @@ in
   })
   (mkUserActivation {
     name = "zeusNoctaliaFiles";
-    dryMessage = "would initialize ${userSettings.name} noctalia files";
+    dryMessage = "would manage ${userSettings.name} noctalia files";
     removePaths = [
       ".cache/DankMaterialShell"
       ".config/DankMaterialShell"
       ".config/niri/dms"
       ".local/state/DankMaterialShell"
     ];
-    seedFiles = [
+    files = [
       {
         source = noctaliaSettingsSeed;
         target = ".config/noctalia/settings.json";
       }
+    ];
+    seedFiles = [
       {
         source = noctaliaWallpaperCacheSeed;
         target = ".cache/noctalia/wallpapers.json";
