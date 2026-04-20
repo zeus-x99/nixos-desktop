@@ -9,6 +9,8 @@ let
   secretsFile = ../../secrets/secrets.yaml;
   hasSecretsFile = builtins.pathExists secretsFile;
   codexEnvPath = "/run/secrets/rendered/codex-api.env";
+  webdavEnvPath = "/run/secrets/rendered/webdav.env";
+  davfs2SecretsPath = "/run/secrets/rendered/davfs2-secrets";
 in
 {
   environment.systemPackages = with pkgs; [
@@ -25,6 +27,10 @@ in
     secrets = lib.mkIf hasSecretsFile {
       cliproxyapi_api_key = { };
       ha-system-ronitor-mqtt-password = { };
+      webdav_username = { };
+      webdav_password = { };
+      davfs2_username = { };
+      davfs2_password = { };
     };
 
     templates = lib.mkIf hasSecretsFile {
@@ -35,6 +41,27 @@ in
         mode = "0400";
         content = ''
           CLIPROXYAPI_API_KEY=${config.sops.placeholder.cliproxyapi_api_key}
+        '';
+      };
+
+      "webdav.env" = {
+        path = webdavEnvPath;
+        owner = "root";
+        group = "root";
+        mode = "0400";
+        content = ''
+          WEBDAV_USERNAME=${config.sops.placeholder.webdav_username}
+          WEBDAV_PASSWORD=${config.sops.placeholder.webdav_password}
+        '';
+      };
+
+      "davfs2-secrets" = {
+        path = davfs2SecretsPath;
+        owner = "root";
+        group = "root";
+        mode = "0400";
+        content = ''
+          /mnt/webdav ${config.sops.placeholder.davfs2_username} ${config.sops.placeholder.davfs2_password}
         '';
       };
     };
