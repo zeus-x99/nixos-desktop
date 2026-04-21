@@ -8,6 +8,9 @@ let
   } ''
     starship init nu > "$out"
   '';
+  starshipConfig = pkgs.writeText "zeus-starship.toml" ''
+    follow_symlinks = false
+  '';
 in
 
 mkUserActivation {
@@ -17,6 +20,10 @@ mkUserActivation {
     {
       source = starshipInit;
       target = ".cache/starship/init.nu";
+    }
+    {
+      source = starshipConfig;
+      target = ".config/starship.toml";
     }
   ];
 }

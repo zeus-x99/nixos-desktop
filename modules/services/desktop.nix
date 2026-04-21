@@ -167,6 +167,9 @@ let
         ];
       };
     };
+    dock = {
+      enabled = false;
+    };
     controlCenter = {
       cards = [
         {
@@ -226,6 +229,7 @@ in
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
     NIRI_CONFIG = "/etc/niri/config.kdl";
+    QT_IM_MODULE = "fcitx";
     QT_QPA_PLATFORMTHEME_QT6 = "qt6ct";
     EDITOR = "${pkgs.helix}/bin/hx";
     VISUAL = "${pkgs.helix}/bin/hx";
@@ -442,8 +446,10 @@ in
       waylandFrontend = true;
       addons = with pkgs; [
         fcitx5-gtk
+        libsForQt5.fcitx5-qt
         fcitx5-mellow-themes
         fcitx5Rime
+        qt6Packages.fcitx5-qt
       ];
       settings = {
         globalOptions = {
