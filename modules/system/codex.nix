@@ -48,7 +48,7 @@ let
 
   codexConfig = tomlFormat.generate "codex-config.toml" {
     model_provider = "packycode";
-    model = "gpt-5.4";
+    model = "gpt-5.5";
     model_context_window = 400000;
     model_reasoning_effort = "xhigh";
     web_search = "live";
@@ -56,7 +56,7 @@ let
     developer_instructions = defaultInstructions;
     model_providers.packycode = {
       name = "packycode";
-      base_url = "http://10.0.0.1:8317/v1";
+      base_url = "https://cpa.imagic.wiki/v1";
       wire_api = "responses";
       requires_openai_auth = true;
       env_key = "CLIPROXYAPI_API_KEY";

@@ -24,8 +24,7 @@ let
       schema_list:
         - schema: rime_ice
       menu/page_size: 9
-      "key_binder/bindings/+":
-        - { when: always, toggle: ascii_mode, accept: Control+space }
+      "ascii_composer/switch_key/Shift_L": commit_code
   '';
 
   clipboardBridge = pkgs.writeShellScript "zeus-clipboard-bridge.sh" ''
