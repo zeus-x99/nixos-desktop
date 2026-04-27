@@ -49,7 +49,6 @@ let
   codexConfig = tomlFormat.generate "codex-config.toml" {
     model_provider = "packycode";
     model = "gpt-5.5";
-    model_context_window = 400000;
     model_reasoning_effort = "xhigh";
     web_search = "live";
     disable_response_storage = true;
