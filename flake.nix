@@ -60,6 +60,18 @@
           { nixpkgs.config = nixpkgsConfig; }
           ha-system-ronitor.nixosModules.default
           noctalia-shell.nixosModules.default
+          ({ ... }: {
+            services.noctalia-shell.package = noctalia-shell.packages.${system}.default.overrideAttrs (old: {
+              installPhase = (old.installPhase or "") + ''
+                substituteInPlace "$out/share/noctalia-shell/Modules/MainScreen/MainScreen.qml" \
+                  --replace-fail 'BackgroundEffect.blurRegion: Settings.data.general.enableBlurBehind ? blurRegion : null' '// BackgroundEffect.blurRegion disabled: Niri does not support ext-background-effect-v1'
+                substituteInPlace "$out/share/noctalia-shell/Modules/Dock/Dock.qml" \
+                  --replace-fail 'BackgroundEffect.blurRegion: Settings.data.general.enableBlurBehind ? dockBlurRegion : null' '// BackgroundEffect.blurRegion disabled: Niri does not support ext-background-effect-v1'
+                substituteInPlace "$out/share/noctalia-shell/Modules/Panels/Launcher/LauncherOverlayWindow.qml" \
+                  --replace-fail 'BackgroundEffect.blurRegion: Settings.data.general.enableBlurBehind ? launcherBlurRegion : null' '// BackgroundEffect.blurRegion disabled: Niri does not support ext-background-effect-v1'
+              '';
+            });
+          })
           sops-nix.nixosModules.sops
           ./hardware-configuration.nix
           ./modules/default.nix

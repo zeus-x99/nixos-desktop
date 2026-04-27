@@ -126,9 +126,19 @@ let
   niriConfig = ./niri-config.kdl;
   wallpaperImage = ../../assets/wallpapers/sunlight-beams-wallpaper-3840x2160-magical-woods-forest-magic-29641.jpg;
   wallpaperPath = toString wallpaperImage;
+  noctaliaDesktopEntry = pkgs.makeDesktopItem {
+    name = "dev.noctalia.noctalia-qs";
+    desktopName = "Noctalia Shell";
+    genericName = "Desktop Shell";
+    comment = "Noctalia desktop shell";
+    exec = "${config.services.noctalia-shell.package}/bin/noctalia-shell";
+    icon = "nix-snowflake";
+    categories = [ "Utility" ];
+    startupNotify = false;
+  };
   noctaliaSettingsSeed = pkgs.writeText "zeus-noctalia-settings.json" (builtins.toJSON {
     general = {
-      enableBlurBehind = true;
+      enableBlurBehind = false;
       showChangelogOnStartup = false;
     };
     ui = {
@@ -150,16 +160,47 @@ let
       contentPadding = 2;
       widgets = {
         left = [
-          { id = "Clock"; }
-          { id = "SystemMonitor"; }
+          { id = "Workspace"; }
           { id = "ActiveWindow"; }
-          { id = "MediaMini"; }
         ];
         center = [
-          { id = "Workspace"; }
+          {
+            id = "Clock";
+            clockColor = "none";
+            useCustomFont = false;
+            customFont = "";
+            formatHorizontal = "HH:mm ddd, MMM dd";
+            formatVertical = "HH mm - dd MM";
+            tooltipFormat = "HH:mm ddd, MMM dd";
+          }
+          { id = "MediaMini"; }
         ];
         right = [
-          { id = "Tray"; }
+          {
+            id = "Tray";
+            drawerEnabled = false;
+            hidePassive = true;
+          }
+          {
+            id = "SystemMonitor";
+            compactMode = false;
+            useMonospaceFont = true;
+            usePadding = true;
+            showCpuUsage = true;
+            showCpuCores = false;
+            showCpuFreq = false;
+            showCpuTemp = false;
+            showGpuTemp = false;
+            showLoadAverage = false;
+            showMemoryUsage = true;
+            showMemoryAsPercent = true;
+            showSwapUsage = false;
+            showNetworkStats = true;
+            showDiskUsage = false;
+            showDiskUsageAsPercent = false;
+            showDiskAvailable = false;
+            diskPath = "/";
+          }
           { id = "NotificationHistory"; }
           { id = "Volume"; }
           { id = "ControlCenter"; }
@@ -168,6 +209,25 @@ let
     };
     dock = {
       enabled = false;
+    };
+    location = {
+      name = "Chengdu";
+      autoLocate = false;
+      weatherEnabled = true;
+      useFahrenheit = false;
+      use12hourFormat = false;
+      firstDayOfWeek = -1;
+    };
+    colorSchemes = {
+      darkMode = false;
+      schedulingMode = "location";
+      manualSunrise = "06:30";
+      manualSunset = "18:30";
+      syncGsettings = true;
+      useWallpaperColors = true;
+      predefinedScheme = "One";
+      generationMethod = "tonal-spot";
+      monitorForColors = "HDMI-A-1";
     };
     controlCenter = {
       cards = [
@@ -291,6 +351,7 @@ in
     mpv
     papirus-icon-theme
     xwayland-satellite
+    noctaliaDesktopEntry
   ] ++ [
     config.services.noctalia-shell.package
   ];
