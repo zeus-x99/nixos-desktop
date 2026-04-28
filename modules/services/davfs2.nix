@@ -3,6 +3,19 @@ let
   davfsMountPoint = "/mnt/webdav";
 in
 {
+  nixpkgs.overlays = [
+    (_final: prev: {
+      davfs2 = prev.davfs2.overrideAttrs (oldAttrs: {
+        postPatch = (oldAttrs.postPatch or "") + ''
+          mkdir -p m4
+          substituteInPlace configure.ac \
+            --replace-fail 'NE_REQUIRE_VERSIONS([0], [27 28 29 30 31 32 33 34 35 36])' \
+                           'NE_REQUIRE_VERSIONS([0], [27 28 29 30 31 32 33 34 35 36 37])'
+        '';
+      });
+    })
+  ];
+
   services.davfs2 = {
     enable = true;
     settings = {
@@ -48,8 +61,15 @@ in
     ];
   };
 
-  systemd.tmpfiles.rules = [
-    "d ${davfsMountPoint} 0755 ${userSettings.name} ${userSettings.group} -"
-    "L+ ${userSettings.home}/webdav-davfs - - - - ${davfsMountPoint}"
-  ];
+  system.activationScripts.davfs2WebdavLink = {
+    deps = [ "users" ];
+    text = ''
+      if [ ! -e ${davfsMountPoint} ]; then
+        install -d -m 0755 ${davfsMountPoint}
+      fi
+
+      ln -sfnT ${davfsMountPoint} ${userSettings.home}/webdav-davfs
+      chown -h ${userSettings.name}:${userSettings.group} ${userSettings.home}/webdav-davfs
+    '';
+  };
 }

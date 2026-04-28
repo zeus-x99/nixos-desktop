@@ -124,6 +124,34 @@ let
   '';
 
   niriConfig = ./niri-config.kdl;
+  niriLatest = pkgs.niri.overrideAttrs (oldAttrs: rec {
+    version = "26.04";
+    src = pkgs.fetchFromGitHub {
+      owner = "niri-wm";
+      repo = "niri";
+      tag = "v${version}";
+      hash = "sha256-ehSMsSpE+0k8r+2Vseu8kangsYxToZv3vinynsDp9zs=";
+    };
+    postPatch = ''
+      patchShebangs resources/niri-session
+      substituteInPlace resources/niri.service \
+        --replace-fail 'ExecStart=niri' "ExecStart=$out/bin/niri"
+    '';
+    cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+      inherit src;
+      hash = "sha256-gfnalA3qI3a9h3PvsxgQLCrzapfjLLkxhTMJpwRh+ro=";
+    };
+    env = oldAttrs.env // {
+      NIRI_BUILD_COMMIT = "8ed0da44d974c32c6877d2f4630c314da0717ecb";
+    };
+  });
+  defaultCursorTheme = pkgs.runCommand "zeus-default-cursor-theme" { } ''
+    mkdir -p $out/share/icons/default
+    cat >$out/share/icons/default/index.theme <<'EOF'
+    [Icon Theme]
+    Inherits=Bibata-Modern-Ice
+    EOF
+  '';
   wallpaperImage = ../../assets/wallpapers/sunlight-beams-wallpaper-3840x2160-magical-woods-forest-magic-29641.jpg;
   wallpaperPath = toString wallpaperImage;
   noctaliaDesktopEntry = pkgs.makeDesktopItem {
@@ -138,7 +166,7 @@ let
   };
   noctaliaSettingsSeed = pkgs.writeText "zeus-noctalia-settings.json" (builtins.toJSON {
     general = {
-      enableBlurBehind = false;
+      enableBlurBehind = true;
       showChangelogOnStartup = false;
     };
     ui = {
@@ -284,18 +312,26 @@ in
   xdg.portal.enable = true;
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
 
+  xdg.terminal-exec = {
+    enable = true;
+    settings.default = [ "foot.desktop" ];
+  };
+
   # QQ 在 Wayland 下默认会退回 X11；开启 Ozone 后才能正常启动。
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
     NIRI_CONFIG = "/etc/niri/config.kdl";
+    XCURSOR_THEME = "Bibata-Modern-Ice";
+    XCURSOR_SIZE = "24";
     QT_IM_MODULE = "fcitx";
     QT_QPA_PLATFORMTHEME_QT6 = "qt6ct";
     EDITOR = "${pkgs.helix}/bin/hx";
     VISUAL = "${pkgs.helix}/bin/hx";
+    TERMINAL = "${pkgs.foot}/bin/foot";
   };
 
   systemd.user.extraConfig = '';
-    DefaultEnvironment="EDITOR=${pkgs.helix}/bin/hx" "VISUAL=${pkgs.helix}/bin/hx"
+    DefaultEnvironment="EDITOR=${pkgs.helix}/bin/hx" "VISUAL=${pkgs.helix}/bin/hx" "TERMINAL=${pkgs.foot}/bin/foot" "XCURSOR_THEME=Bibata-Modern-Ice" "XCURSOR_SIZE=24"
   '';
 
   qt.enable = true;
@@ -339,15 +375,44 @@ in
     description = "Auto-mount removable media";
     wantedBy = [ "graphical-session.target" ];
     partOf = [ "graphical-session.target" ];
-    after = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" "niri.service" ];
+    path = with pkgs; [ xdg-utils ];
     serviceConfig = {
-      ExecStart = "${pkgs.udiskie}/bin/udiskie --automount --notify --tray";
+      ExecStart = pkgs.writeShellScript "zeus-udiskie-session" ''
+        set -eu
+
+        runtime_dir="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+        export XDG_RUNTIME_DIR="$runtime_dir"
+
+        if [ -z "''${WAYLAND_DISPLAY:-}" ]; then
+          attempt=0
+          while [ "$attempt" -lt 10 ]; do
+            for socket in "$runtime_dir"/wayland-*; do
+              if [ -S "$socket" ]; then
+                export WAYLAND_DISPLAY="$(basename "$socket")"
+                break 2
+              fi
+            done
+            attempt=$((attempt + 1))
+            ${pkgs.coreutils}/bin/sleep 1
+          done
+        fi
+
+        exec ${pkgs.udiskie}/bin/udiskie \
+          --automount \
+          --notify \
+          --tray \
+          --file-manager ${pkgs.xdg-utils}/bin/xdg-open
+      '';
+      Environment = [ "LC_ALL=C.UTF-8" ];
       Restart = "on-failure";
       RestartSec = 1;
     };
   };
 
   environment.systemPackages = with pkgs; [
+    bibata-cursors
+    defaultCursorTheme
     mpv
     papirus-icon-theme
     xwayland-satellite
@@ -356,6 +421,8 @@ in
     config.services.noctalia-shell.package
   ];
 
+  environment.pathsToLink = [ "/share/icons" ];
+
   # Provide a real icon theme instead of relying on the bare hicolor fallback
   # metadata only.
   programs.dconf.profiles.user.databases = [
@@ -363,6 +430,8 @@ in
       settings = {
         "org/gnome/desktop/interface" = {
           "icon-theme" = "Papirus";
+          "cursor-theme" = "Bibata-Modern-Ice";
+          "cursor-size" = lib.gvariant.mkInt32 24;
         };
       };
     }
@@ -436,6 +505,7 @@ in
         bright6 = "66a9c7";
         bright7 = "faf7ff";
         alpha = 0.95;
+        blur = true;
       };
     };
   };
@@ -494,10 +564,42 @@ in
     };
   };
 
-  programs.niri.enable = true;
+  programs.niri = {
+    enable = true;
+    package = niriLatest;
+  };
   services.displayManager.ly.enable = true;
-
   services.displayManager.defaultSession = "niri";
+
+  services.dbus.packages =
+    let
+      filteredSystemDbus = pkgs.runCommand "filtered-system-dbus" { } ''
+        copy_dir() {
+          local source_dir="$1"
+          local target_dir="$2"
+
+          if [ -d "$source_dir" ]; then
+            mkdir -p "$target_dir"
+            for entry in "$source_dir"/*; do
+              [ -e "$entry" ] || continue
+              ln -s "$entry" "$target_dir/"
+            done
+          fi
+        }
+
+        copy_dir ${config.system.path}/etc/dbus-1/system.d $out/etc/dbus-1/system.d
+        copy_dir ${config.system.path}/share/dbus-1/system.d $out/share/dbus-1/system.d
+        copy_dir ${config.system.path}/share/dbus-1/system-services $out/share/dbus-1/system-services
+
+        rm -f $out/share/dbus-1/system-services/org.freedesktop.resolve1.service
+      '';
+    in
+    lib.mkForce [
+      config.services.dbus.dbusPackage
+      filteredSystemDbus
+      pkgs.gcr
+      pkgs.nautilus
+    ];
 
   i18n.inputMethod = {
     enable = true;

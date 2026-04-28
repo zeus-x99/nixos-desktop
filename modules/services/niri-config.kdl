@@ -94,6 +94,13 @@ recent-windows {
     off
 }
 
+blur {
+    passes 3
+    offset 3
+    noise 0.02
+    saturation 1.5
+}
+
 // Settings that influence how windows are positioned and sized.
 // Find more information on the wiki:
 // https://yalter.github.io/niri/Configuration:-Layout
@@ -255,7 +262,7 @@ layout {
 // See the binds section below for more spawn examples.
 
 // Start Noctalia from Niri so it inherits the live Wayland session.
-spawn-at-startup "noctalia-shell"
+spawn-at-startup "/run/current-system/sw/bin/env" "-u" "LC_ALL" "-u" "LC_CTYPE" "LANG=zh_CN.UTF-8" "QT_QPA_PLATFORMTHEME=qt6ct" "XCURSOR_THEME=Bibata-Modern-Ice" "XCURSOR_SIZE=24" "noctalia-shell"
 // Start Fcitx5 from the compositor so it inherits the live Wayland session.
 spawn-at-startup "/run/current-system/sw/bin/fcitx5" "-d" "-r"
 // Clipboard bridge is managed by a user systemd service.
@@ -329,9 +336,30 @@ window-rule {
     // block-out-from "screencast"
 }
 
+layer-rule {
+    match namespace=r#"^noctalia-(background|launcher-overlay|dock|desktop-widgets|notifications|osd|popupmenu|toast)-.*$"#
+
+    background-effect {
+        blur true
+        xray false
+    }
+}
+
 window-rule {
     geometry-corner-radius 14
     clip-to-geometry true
+
+    background-effect {
+        blur true
+        xray false
+    }
+
+    popups {
+        background-effect {
+            blur true
+            xray false
+        }
+    }
 }
 
 binds {
@@ -350,7 +378,7 @@ binds {
     Mod+Shift+Slash { show-hotkey-overlay; }
 
     // Suggested binds for running programs: terminal, app launcher, screen locker.
-    Mod+Return hotkey-overlay-title="Open a Terminal: alacritty" { spawn "alacritty"; }
+    Mod+Return hotkey-overlay-title="Open a Terminal: foot" { spawn "foot"; }
     Mod+D hotkey-overlay-title="Run an Application: Noctalia Launcher" { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
 
     // Use spawn-sh to run a shell command. Do this if you need pipes, multiple commands, etc.
@@ -382,7 +410,7 @@ binds {
     Mod+Alt+G hotkey-overlay-title="Launch Steam in gamescope" { spawn "steam-gamescope-niri"; }
     Mod+Alt+M hotkey-overlay-title="Toggle MangoHud" { spawn "mangohudctl" "toggle" "no_display"; }
     Mod+Alt+Q { spawn-sh "id=$(niri msg --json windows | jq -r 'map(select((.app_id | ascii_downcase)==\"qq\")) | if length > 0 then max_by([.focus_timestamp.secs, .focus_timestamp.nanos]).id else empty end'); if [ -n \"$id\" ]; then exec niri msg action focus-window --id \"$id\"; fi; tray=''; for name in $(busctl --user list 2>/dev/null | awk '$3 == \"qq\" { print $1 }'); do if busctl --user tree \"$name\" 2>/dev/null | grep -q '/StatusNotifierItem'; then tray=\"$name\"; break; fi; done; if [ -n \"$tray\" ]; then busctl --user call \"$tray\" /StatusNotifierItem org.kde.StatusNotifierItem Activate ii 0 0 >/dev/null 2>&1 && exit 0; fi; if pgrep -f '/opt/QQ/qq( |$)' >/dev/null; then exit 0; else exec qq; fi"; }
-    Mod+Alt+T { spawn-sh "id=$(niri msg --json windows | jq -r 'map(select((.app_id | ascii_downcase)==\"alacritty\")) | if length > 0 then max_by([.focus_timestamp.secs, .focus_timestamp.nanos]).id else empty end'); if [ -n \"$id\" ]; then exec niri msg action focus-window --id \"$id\"; elif pgrep -f '(^|/)(alacritty)( |$)' >/dev/null; then exit 0; else exec alacritty; fi"; }
+    Mod+Alt+T { spawn-sh "id=$(niri msg --json windows | jq -r 'map(select((.app_id | ascii_downcase)==\"foot\")) | if length > 0 then max_by([.focus_timestamp.secs, .focus_timestamp.nanos]).id else empty end'); if [ -n \"$id\" ]; then exec niri msg action focus-window --id \"$id\"; elif pgrep -f '(^|/)(foot)( |$)' >/dev/null; then exit 0; else exec foot; fi"; }
     Mod+Alt+W { spawn-sh "id=$(niri msg --json windows | jq -r 'map(select((.app_id | ascii_downcase)==\"wechat\")) | if length > 0 then max_by([.focus_timestamp.secs, .focus_timestamp.nanos]).id else empty end'); if [ -n \"$id\" ]; then exec niri msg action focus-window --id \"$id\"; fi; tray=$(busctl --user list 2>/dev/null | awk '$1 ~ /^org\\.kde\\.StatusNotifierItem-/ && $3 == \"wechat\" { print $1; exit }'); if [ -n \"$tray\" ]; then busctl --user call \"$tray\" /StatusNotifierItem org.kde.StatusNotifierItem Activate ii 0 0 >/dev/null 2>&1 && exit 0; fi; exec wechat"; }
 
     Mod+Left  { focus-column-left; }

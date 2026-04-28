@@ -12,7 +12,6 @@
     packages = with pkgs; [
       qq
       wechat
-      alacritty
       obs-studio
       codex
       helix
