@@ -9,6 +9,7 @@
   networking.networkmanager = {
     enable = true;
     wifi.powersave = false;
+    settings.keyfile.unmanaged-devices = "type:wifi-p2p";
 
     ensureProfiles.profiles."eno1-static" = {
       connection = {

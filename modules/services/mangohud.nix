@@ -1,9 +1,5 @@
-{ lib, pkgs, userSettings, ... }:
+{ pkgs, ... }:
 let
-  mkUserActivation = import ../../lib/mk-user-activation.nix {
-    inherit lib userSettings;
-  };
-
   steamGamescopeConfigPath = "/etc/mangohud/steam-gamescope.conf";
 
   steamGamescopeConfig = pkgs.writeText "zeus-steam-gamescope-mangohud.conf" ''
@@ -53,11 +49,4 @@ in
   programs.steam.gamescopeSession = {
     env.MANGOHUD_CONFIGFILE = steamGamescopeConfigPath;
   };
-} // mkUserActivation {
-  name = "zeusMangoHudSteamCleanup";
-  dryMessage = "would remove ${userSettings.name} desktop MangoHud config";
-  removePaths = [
-    ".config/MangoHud/MangoHud.conf"
-    ".local/state/MangoHud"
-  ];
 }

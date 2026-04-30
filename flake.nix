@@ -5,6 +5,10 @@
       url = "github:zeus-x99/ha-system-ronitor";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    home-manager = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     noctalia-shell = {
       url = "github:noctalia-dev/noctalia-shell";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -15,13 +19,15 @@
     };
   };
 
-  outputs = {
-    nixpkgs,
-    ha-system-ronitor,
-    noctalia-shell,
-    sops-nix,
-    ...
-  }:
+  outputs =
+    {
+      nixpkgs,
+      ha-system-ronitor,
+      home-manager,
+      noctalia-shell,
+      sops-nix,
+      ...
+    }:
     let
       system = "x86_64-linux";
       nixpkgsConfig = {
@@ -59,6 +65,7 @@
         modules = [
           { nixpkgs.config = nixpkgsConfig; }
           ha-system-ronitor.nixosModules.default
+          home-manager.nixosModules.home-manager
           noctalia-shell.nixosModules.default
           sops-nix.nixosModules.sops
           ./hardware-configuration.nix
