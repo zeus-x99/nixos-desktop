@@ -213,7 +213,7 @@ let
   );
 
   narakaAppId = "1203220";
-  narakaLaunchOptions = "gamemoderun %command%";
+  narakaLaunchOptions = "PROTON_FORCE_NVAPI=1 PROTON_HIDE_NVIDIA_GPU=0 DXVK_FILTER_DEVICE_NAME='NVIDIA GeForce RTX 5070' VK_DRIVER_FILES=/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json VK_ICD_FILENAMES=/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json gamemoderun %command%";
   steamLaunchOptionsUpdater = pkgs.writeText "steam-launch-options-updater.pl" ''
     use strict;
     use warnings;
@@ -371,10 +371,15 @@ in
 
       if ($codex_env_file | path exists) {
         for line in (open $codex_env_file | lines) {
-          if ($line | str starts-with "CLIPROXYAPI_API_KEY=") {
-            $env.CLIPROXYAPI_API_KEY = ($line | str replace "CLIPROXYAPI_API_KEY=" "")
+          if ($line | str starts-with "OPENAI_API_KEY=") {
+            $env.OPENAI_API_KEY = ($line | str replace "OPENAI_API_KEY=" "")
           }
         }
+      }
+
+      let codex_auth_file = $"($env.HOME)/.codex/auth.json"
+      if ($codex_auth_file | path exists) {
+        $env.OPENAI_API_KEY = (open $codex_auth_file | get OPENAI_API_KEY | str trim)
       }
     '';
     loginFile.text = "";
@@ -485,7 +490,7 @@ in
         base_url = "https://cpa.imagic.wiki/v1";
         wire_api = "responses";
         requires_openai_auth = true;
-        env_key = "CLIPROXYAPI_API_KEY";
+        env_key = "OPENAI_API_KEY";
       };
       projects = {
         "/etc/nixos" = {

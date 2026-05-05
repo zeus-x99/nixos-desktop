@@ -40,7 +40,7 @@ in
         group = userSettings.group;
         mode = "0400";
         content = ''
-          CLIPROXYAPI_API_KEY=${config.sops.placeholder.cliproxyapi_api_key}
+          OPENAI_API_KEY=${config.sops.placeholder.cliproxyapi_api_key}
         '';
       };
 

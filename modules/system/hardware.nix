@@ -20,6 +20,23 @@
     memoryPercent = 50;
   };
 
+  systemd.services.nvidia-uvm-devices = {
+    description = "Create NVIDIA UVM device nodes";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "systemd-modules-load.service" ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      ${pkgs.kmod}/bin/modprobe nvidia_uvm || true
+
+      major="$(${pkgs.gawk}/bin/awk '$2 == "nvidia-uvm" { print $1 }' /proc/devices)"
+      if [ -n "$major" ]; then
+        [ -e /dev/nvidia-uvm ] || ${pkgs.coreutils}/bin/mknod -m 666 /dev/nvidia-uvm c "$major" 0
+        [ -e /dev/nvidia-uvm-tools ] || ${pkgs.coreutils}/bin/mknod -m 666 /dev/nvidia-uvm-tools c "$major" 1
+        ${pkgs.coreutils}/bin/chmod 666 /dev/nvidia-uvm /dev/nvidia-uvm-tools
+      fi
+    '';
+  };
+
   services.udev.extraRules = lib.mkForce ''
     KERNEL=="tun", TAG+="systemd"
 
