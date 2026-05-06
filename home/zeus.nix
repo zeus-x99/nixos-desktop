@@ -172,6 +172,20 @@ let
             id = "media-sysmon-card";
           }
         ];
+        shortcuts = {
+          left = [
+            { id = "Network"; }
+            { id = "Bluetooth"; }
+            { id = "WallpaperSelector"; }
+            { id = "PowerProfile"; }
+          ];
+          right = [
+            { id = "Notifications"; }
+            { id = "KeepAwake"; }
+            { id = "DarkMode"; }
+            { id = "NightLight"; }
+          ];
+        };
       };
       osd = {
         enabled = true;
