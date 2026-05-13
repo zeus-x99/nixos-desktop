@@ -344,10 +344,6 @@ let
   '';
 in
 {
-  imports = [
-    ./jellyfin-tui.nix
-  ];
-
   home = {
     username = userSettings.name;
     homeDirectory = userSettings.home;
